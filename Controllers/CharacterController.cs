@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections;
+using dotnet_rpg.Dtos.Character;
 
 
 namespace dotnet_rpg.Controllers
@@ -39,19 +40,19 @@ namespace dotnet_rpg.Controllers
 
 
         [HttpPost("AddCharacter")]
-        public async Task<ActionResult<ServiceResponse<List<Character>>>> AddSingle(Character newCharacter) {
+        public async Task<ActionResult<ServiceResponse<List<Character>>>> AddSingle(AddCharacterDto newCharacter) {
             return Ok(await _characterService.AddCharacter(newCharacter));
         }
 
 
         [HttpGet("GetAll")]
-        public async Task<ActionResult<ServiceResponse<List<Character>>>> Get()
+        public async Task<ActionResult<ServiceResponse<List<GetCharacterDTO>>>> Get()
         {
             return Ok(await _characterService.GetAllCharacters());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServiceResponse<Character>>> GetSingle(int id)
+        public async Task<ActionResult<ServiceResponse<GetCharacterDTO>>> GetSingle(int id)
         {
             return Ok(await _characterService.GetCharacterById(id));
         }
@@ -60,6 +61,11 @@ namespace dotnet_rpg.Controllers
         public ActionResult<Character> GetRandom()
         {
             return Ok(ran);
+        }
+
+        [HttpPut("UpdateCharacter")]
+        public async Task<ActionResult<ServiceResponse<List<GetCharacterDTO>>>> UpdateCharacter(UpdateCharacterDto updatedCharacter) {
+            return Ok(await _characterService.UpdateCharacter(updatedCharacter));
         }
     }
 }

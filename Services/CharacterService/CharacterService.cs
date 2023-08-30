@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using dotnet_rpg.Dtos.Character;
+using AutoMapper;
 
 namespace dotnet_rpg.Services.CharacterService
 {
@@ -13,26 +15,65 @@ namespace dotnet_rpg.Services.CharacterService
             new Character { Name = "Pippin", Id = 2}
         };
 
-        public async Task<ServiceResponse<List<Character>>> AddCharacter(Character newCharacter)
+        private readonly IMapper _mapper;
+
+        public CharacterService(IMapper mapper)
         {
-            var serviceResponse = new ServiceResponse<List<Character>>();
-            characters.Add(newCharacter);
-            serviceResponse.Data = characters;
+            _mapper = mapper;
+        }
+
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> AddCharacter(AddCharacterDto newCharacter)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
+            var character = _mapper.Map<Character>(newCharacter);
+            character.Id = characters.Max(c => c.Id) + 1;
+            characters.Add(character);
+            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<Character>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
         {
-            var serviceResponse = new ServiceResponse<List<Character>>();
-            serviceResponse.Data = characters;
+            var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
+            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<Character>> GetCharacterById(int id)
+        public async Task<ServiceResponse<GetCharacterDTO>> GetCharacterById(int id)
         {
-            var serviceResponse = new ServiceResponse<Character>();
+            var serviceResponse = new ServiceResponse<GetCharacterDTO>();
             var character = characters.FirstOrDefault(c => c.Id == id);
-            serviceResponse.Data = character;
+            serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<GetCharacterDTO>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
+        {
+            var serviceResponse = new ServiceResponse<GetCharacterDTO>();
+
+            try {
+            var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+
+            if(character is null)
+                {
+                throw new Exception($"Modification of Character has Failed");
+                }
+
+            character.Name = updatedCharacter.Name;
+            character.Age = updatedCharacter.Age;
+            character.Class = updatedCharacter.Class;
+            character.Defense = updatedCharacter.Defense;
+            character.HitPoints = updatedCharacter.HitPoints;
+            character.Intelligence = updatedCharacter.Intelligence;
+            character.IsDead = updatedCharacter.IsDead;
+            character.Strength = updatedCharacter.Strength;
+
+            serviceResponse.Data =  _mapper.Map<GetCharacterDTO>(character);
+        } catch (Exception ex) {
+            serviceResponse.Success = false;
+            serviceResponse.Message = ex.Message;
+        }
+
             return serviceResponse;
         }
     }
