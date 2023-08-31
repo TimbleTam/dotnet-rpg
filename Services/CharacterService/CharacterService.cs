@@ -32,32 +32,60 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> DeleteCharacter(int id)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+
+            try
+            {
+                var character = characters.First(c => c.Id == id);
+
+                if (character is null)
+                {
+                    throw new Exception($"Modification of Character has Failed");
+                }
+                characters.Remove(character);
+                serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
+            }
+
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<GetCharacterDTO>> GetCharacterById(int id)
-        {
-            var serviceResponse = new ServiceResponse<GetCharacterDTO>();
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
-            return serviceResponse;
-        }
 
-        public async Task<ServiceResponse<GetCharacterDTO>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
-        {
-            var serviceResponse = new ServiceResponse<GetCharacterDTO>();
+    public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
+    {
+        var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
+        serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+        return serviceResponse;
+    }
 
-            try {
+    public async Task<ServiceResponse<GetCharacterDTO>> GetCharacterById(int id)
+    {
+        var serviceResponse = new ServiceResponse<GetCharacterDTO>();
+        var character = characters.FirstOrDefault(c => c.Id == id);
+        serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
+        return serviceResponse;
+    }
+
+    public async Task<ServiceResponse<GetCharacterDTO>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
+    {
+        var serviceResponse = new ServiceResponse<GetCharacterDTO>();
+
+        try
+        {
             var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
 
-            if(character is null)
-                {
+            if (character is null)
+            {
                 throw new Exception($"Modification of Character has Failed");
-                }
+            }
+
+            _mapper.Map(updatedCharacter, character);
 
             character.Name = updatedCharacter.Name;
             character.Age = updatedCharacter.Age;
@@ -68,13 +96,15 @@ namespace dotnet_rpg.Services.CharacterService
             character.IsDead = updatedCharacter.IsDead;
             character.Strength = updatedCharacter.Strength;
 
-            serviceResponse.Data =  _mapper.Map<GetCharacterDTO>(character);
-        } catch (Exception ex) {
+            serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
+        }
+        catch (Exception ex)
+        {
             serviceResponse.Success = false;
             serviceResponse.Message = ex.Message;
         }
 
-            return serviceResponse;
-        }
+        return serviceResponse;
     }
+}
 }
