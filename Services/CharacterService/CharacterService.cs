@@ -17,8 +17,11 @@ namespace dotnet_rpg.Services.CharacterService
 
         private readonly IMapper _mapper;
 
-        public CharacterService(IMapper mapper)
+        private readonly DataContext _context;
+
+        public CharacterService(IMapper mapper, DataContext context)
         {
+            _context = context;
             _mapper = mapper;
         }
 
@@ -26,9 +29,9 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.Id = characters.Max(c => c.Id) + 1;
-            characters.Add(character);
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+            _context.Characters.Add(character);
+            await _context.SaveChangesAsync();
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
             return serviceResponse;
         }
 
@@ -38,14 +41,15 @@ namespace dotnet_rpg.Services.CharacterService
 
             try
             {
-                var character = characters.First(c => c.Id == id);
+                var dbcharacter = _context.Characters.First(c => c.Id == id);
 
-                if (character is null)
+                if (dbcharacter is null)
                 {
                     throw new Exception($"Modification of Character has Failed");
                 }
-                characters.Remove(character);
-                serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+                _context.Characters.Remove(dbcharacter);
+                await _context.SaveChangesAsync();
+                serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -60,15 +64,16 @@ namespace dotnet_rpg.Services.CharacterService
     public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
-        serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+        var dbCharacter = await _context.Characters.ToListAsync();
+        serviceResponse.Data = dbCharacter.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
         return serviceResponse;
     }
 
     public async Task<ServiceResponse<GetCharacterDTO>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterDTO>();
-        var character = characters.FirstOrDefault(c => c.Id == id);
-        serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
+        var dbcharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+        serviceResponse.Data = _mapper.Map<GetCharacterDTO>(dbcharacter);
         return serviceResponse;
     }
 
@@ -78,25 +83,27 @@ namespace dotnet_rpg.Services.CharacterService
 
         try
         {
-            var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+            var dbcharacter = _context.Characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
 
-            if (character is null)
+            if (dbcharacter is null)
             {
                 throw new Exception($"Modification of Character has Failed");
             }
 
-            _mapper.Map(updatedCharacter, character);
+            _mapper.Map(updatedCharacter, dbcharacter);
 
-            character.Name = updatedCharacter.Name;
-            character.Age = updatedCharacter.Age;
-            character.Class = updatedCharacter.Class;
-            character.Defense = updatedCharacter.Defense;
-            character.HitPoints = updatedCharacter.HitPoints;
-            character.Intelligence = updatedCharacter.Intelligence;
-            character.IsDead = updatedCharacter.IsDead;
-            character.Strength = updatedCharacter.Strength;
+            dbcharacter.Name = updatedCharacter.Name;
+            dbcharacter.Age = updatedCharacter.Age;
+            dbcharacter.Class = updatedCharacter.Class;
+            dbcharacter.Defense = updatedCharacter.Defense;
+            dbcharacter.HitPoints = updatedCharacter.HitPoints;
+            dbcharacter.Intelligence = updatedCharacter.Intelligence;
+            dbcharacter.IsDead = updatedCharacter.IsDead;
+            dbcharacter.Strength = updatedCharacter.Strength;
 
-            serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
+            serviceResponse.Data = _mapper.Map<GetCharacterDTO>(dbcharacter);
+
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {

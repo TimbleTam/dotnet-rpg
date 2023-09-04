@@ -1,4 +1,7 @@
 {
     "workbench.colorTheme": "Community Material Theme Darker",
-    "dotnet.defaultSolution": "dotnet-rpg.sln"
+    "dotnet.defaultSolution": "dotnet-rpg.sln",
+    "cSpell.words": [
+        "Npgsql"
+    ]
 }
