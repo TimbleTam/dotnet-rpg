@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 namespace dotnet_rpg.Data
 {
     public class DataContext : DbContext
@@ -14,6 +13,8 @@ namespace dotnet_rpg.Data
         }
 
         public DbSet<Character> Characters => Set<Character>();
+
+        public DbSet<User> Users => Set<User>();
 
     }
 }

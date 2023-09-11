@@ -16,5 +16,7 @@ namespace dotnet_rpg.Models
         public float Age { get; set; } = 10f;
         public RpgClass Class { get; set; } = RpgClass.Hobbit;
         public bool IsDead {get; set;} = false;
+
+        public User? User { get; set; }
     }
 }
