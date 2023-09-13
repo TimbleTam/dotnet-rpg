@@ -25,10 +25,11 @@ namespace dotnet_rpg.Services.CharacterService
             _mapper = mapper;
         }
 
-        public async Task<ServiceResponse<List<GetCharacterDTO>>> AddCharacter(AddCharacterDto newCharacter)
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> AddCharacter(AddCharacterDto newCharacter, int userId)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
             var character = _mapper.Map<Character>(newCharacter);
+            character.User = _context.Users.First(c => c.Id == userId);
             _context.Characters.Add(character);
             await _context.SaveChangesAsync();
             serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
@@ -60,10 +61,10 @@ namespace dotnet_rpg.Services.CharacterService
         }
 
 
-        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters(int userId)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
-            var dbCharacter = await _context.Characters.ToListAsync();
+            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == userId) .ToListAsync();
             serviceResponse.Data = dbCharacter.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
             return serviceResponse;
         }

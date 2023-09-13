@@ -1,5 +1,5 @@
 {
-    "workbench.colorTheme": "Community Material Theme Darker",
+    "workbench.colorTheme": "Monokai Pirokai - Arctic Frost",
     "dotnet.defaultSolution": "dotnet-rpg.sln",
     "cSpell.words": [
         "Npgsql"
