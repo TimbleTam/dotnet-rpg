@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using dotnet_rpg.Dtos.Character;
 using AutoMapper;
+using System.Security.Claims;
 
 namespace dotnet_rpg.Services.CharacterService
 {
@@ -18,18 +19,25 @@ namespace dotnet_rpg.Services.CharacterService
         private readonly IMapper _mapper;
 
         private readonly DataContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper, DataContext context)
+        public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _context = context;
             _mapper = mapper;
         }
+
+        private int getUserID() => int.Parse(_httpContextAccessor.HttpContext!.User
+        .FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         public async Task<ServiceResponse<List<GetCharacterDTO>>> AddCharacter(AddCharacterDto newCharacter, int userId)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.User = _context.Users.First(c => c.Id == userId);
+
+
+            character.User = await _context.Users.FirstOrDefaultAsync(c => c.Id == getUserID());
             _context.Characters.Add(character);
             await _context.SaveChangesAsync();
             serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
@@ -61,10 +69,10 @@ namespace dotnet_rpg.Services.CharacterService
         }
 
 
-        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters(int userId)
+        public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
-            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == userId) .ToListAsync();
+            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == getUserID()) .ToListAsync();
             serviceResponse.Data = dbCharacter.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
             return serviceResponse;
         }
